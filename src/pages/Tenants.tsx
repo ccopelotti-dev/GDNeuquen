@@ -63,8 +63,19 @@ const Tenants: React.FC = () => {
                 const unit = units.find(u => u.id === t.unit_id);
                 const hasPaidThisMonth = payments.some(p => {
                     if (p.tenant_id !== t.id) return false;
-                    const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
-                    return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+
+                    if (p.periodDates && p.periodDates.length > 0) {
+                        return p.periodDates.some(pd => {
+                            const targetDate = dayjs(pd);
+                            return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                        });
+                    } else if (p.periodDate) { // Fallback
+                        const targetDate = dayjs(p.periodDate);
+                        return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                    } else { // Fallback
+                        const targetDate = dayjs(p.date);
+                        return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                    }
                 });
 
                 const isWarning = !hasPaidThisMonth && past10th;

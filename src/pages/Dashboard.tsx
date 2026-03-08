@@ -95,8 +95,13 @@ const Dashboard: React.FC = () => {
                 // 2. Recaudación & Ganancia Operativa (Mes Actual)
                 const currentMonth = dayjs().format('YYYY-MM');
                 const pThisMonth = filteredPayments.filter(p => {
-                    const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
-                    return targetDate.format('YYYY-MM') === currentMonth;
+                    if (p.periodDates && p.periodDates.length > 0) {
+                        return p.periodDates.some(pd => dayjs(pd).format('YYYY-MM') === currentMonth);
+                    } else if (p.periodDate) { // Fallback
+                        return dayjs(p.periodDate).format('YYYY-MM') === currentMonth;
+                    } else { // Fallback
+                        return dayjs(p.date).format('YYYY-MM') === currentMonth;
+                    }
                 });
 
                 const recBruta = pThisMonth.reduce((acc, curr) => acc + curr.amount, 0);
@@ -126,8 +131,13 @@ const Dashboard: React.FC = () => {
                     const monthName = dayjs().subtract(i, 'month').format('MMM').toUpperCase();
 
                     const pMonth = filteredPayments.filter(p => {
-                        const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
-                        return targetDate.format('YYYY-MM') === monthKey;
+                        if (p.periodDates && p.periodDates.length > 0) {
+                            return p.periodDates.some(pd => dayjs(pd).format('YYYY-MM') === monthKey);
+                        } else if (p.periodDate) {
+                            return dayjs(p.periodDate).format('YYYY-MM') === monthKey;
+                        } else {
+                            return dayjs(p.date).format('YYYY-MM') === monthKey;
+                        }
                     });
 
                     const rBruta = pMonth.reduce((acc, curr) => acc + curr.amount, 0);

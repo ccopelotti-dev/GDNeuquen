@@ -68,8 +68,18 @@ const Payments: React.FC = () => {
             const currentMonthStart = dayjs().startOf('month');
 
             const thisMonthPayments = p.filter(payment => {
-                const targetDate = payment.periodDate ? dayjs(payment.periodDate) : dayjs(payment.date);
-                return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                if (payment.periodDates && payment.periodDates.length > 0) {
+                    return payment.periodDates.some(pd => {
+                        const targetDate = dayjs(pd);
+                        return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                    });
+                } else if (payment.periodDate) { // Fallback for old data
+                    const targetDate = dayjs(payment.periodDate);
+                    return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                } else {
+                    const targetDate = dayjs(payment.date);
+                    return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                }
             });
 
             const rows = thisMonthPayments.map(payment => {
@@ -180,8 +190,15 @@ const Payments: React.FC = () => {
                 }
             }
 
+            // check if there is a specific signer
+            let signerName = record.ownerName;
+            if (record.signed_by) {
+                const signerObj = owners.find(o => o.id === record.signed_by);
+                if (signerObj) signerName = signerObj.fullName;
+            }
+
             doc.text("_________________________", 14, finalY + 50);
-            doc.text(`Firma: ${record.ownerName}`, 14, finalY + 55);
+            doc.text(`Firma: ${signerName}`, 14, finalY + 55);
         } else {
             doc.text("_________________________", 14, finalY + 50);
             doc.text("Firma del Administrador", 14, finalY + 55);
@@ -241,6 +258,11 @@ const Payments: React.FC = () => {
 
     const handleOpenModal = () => {
         form.resetFields();
+        form.setFieldsValue({
+            date: dayjs(),
+            paymentMethod: 'Efectivo',
+            periodDates: [dayjs()]
+        });
         setIsModalVisible(true);
     };
 
@@ -264,21 +286,37 @@ const Payments: React.FC = () => {
             const adminFee = (totalAmount * commPerc) / 100;
             const ownerBalance = totalAmount - adminFee;
 
+            let periodDatesArray: string[] = [];
+            if (values.periodDates && values.periodDates.length > 0) {
+                // Ensure they are correctly typed as dayjs objects before calculating
+                periodDatesArray = values.periodDates.map((pd: any) => dayjs(pd).startOf('month').toISOString());
+            } else {
+                periodDatesArray = [dayjs().startOf('month').toISOString()];
+            }
+
+            // Create a nicely formatted string for the concept based on the months selected
+            let monthsConcept = dayjs().format('MMM YYYY');
+            if (values.periodDates && values.periodDates.length > 0) {
+                const months = values.periodDates.map((pd: any) => dayjs(pd).format('MMM YYYY'));
+                monthsConcept = months.join(' y ');
+            }
+
             await api.payments.create({
                 tenant_id: values.tenant_id,
                 owner_id: values.owner_id,
                 amount: totalAmount,
-                concept: `Alquiler ${dayjs().format('MMM YYYY')} + Extras`,
+                concept: `Alquiler ${monthsConcept} + Extras`,
                 rentAmount: rentAmt,
                 tasasAmount: tasasAmt,
                 expensasAmount: expensasAmt,
                 otrosAmount: otrosAmt,
                 date: values.date ? values.date.toISOString() : dayjs().toISOString(),
-                periodDate: values.periodDate ? values.periodDate.startOf('month').toISOString() : dayjs().startOf('month').toISOString(),
+                periodDates: periodDatesArray,
                 paymentMethod: values.paymentMethod,
                 bankDetails: values.bankDetails,
                 adminFee,
                 ownerBalance,
+                signed_by: values.signed_by || values.owner_id,
             });
             message.success('Cobranza registrada exitosamente');
             setIsModalVisible(false);
@@ -386,6 +424,22 @@ const Payments: React.FC = () => {
                     </Row>
 
                     <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item
+                                name="signed_by"
+                                label="Firma del Recibo (Emisor)"
+                                rules={[{ required: false }]}
+                            >
+                                <Select placeholder="Mismo que Propietario / Titular" allowClear>
+                                    {owners.map(o => (
+                                        <Option key={o.id} value={o.id}>{o.fullName} {o.role === 'admin' ? '(Admin)' : ''}</Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Row gutter={16}>
                         <Col span={8}>
                             <Form.Item
                                 name="date"
@@ -397,14 +451,37 @@ const Payments: React.FC = () => {
                             </Form.Item>
                         </Col>
                         <Col span={8}>
-                            <Form.Item
-                                name="periodDate"
-                                label="Período a Imputar"
-                                initialValue={dayjs()}
-                                rules={[{ required: true, message: 'Seleccione período' }]}
-                            >
-                                <DatePicker picker="month" format="MM/YYYY" style={{ width: '100%' }} allowClear={false} />
-                            </Form.Item>
+                            <Form.List name="periodDates">
+                                {(fields, { add, remove }) => (
+                                    <>
+                                        {fields.map((field, index) => (
+                                            <Form.Item
+                                                {...field}
+                                                label={index === 0 ? "Períodos a Imputar" : ""}
+                                                required={false}
+                                                key={field.key}
+                                                style={{ marginBottom: 8 }}
+                                            >
+                                                <Row gutter={8}>
+                                                    <Col flex="auto">
+                                                        <DatePicker picker="month" format="MM/YYYY" style={{ width: '100%' }} allowClear={false} />
+                                                    </Col>
+                                                    <Col flex="none">
+                                                        {fields.length > 1 ? (
+                                                            <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(field.name)} />
+                                                        ) : null}
+                                                    </Col>
+                                                </Row>
+                                            </Form.Item>
+                                        ))}
+                                        <Form.Item>
+                                            <Button type="dashed" onClick={() => add(dayjs())} block icon={<PlusOutlined />}>
+                                                Agregar Período
+                                            </Button>
+                                        </Form.Item>
+                                    </>
+                                )}
+                            </Form.List>
                         </Col>
                         <Col span={8}>
                             <Form.Item

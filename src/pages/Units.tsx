@@ -129,8 +129,19 @@ const Units: React.FC = () => {
 
         const hasPaidThisMonth = payments.some(p => {
             if (p.tenant_id !== tenant.id) return false;
-            const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
-            return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+
+            if (p.periodDates && p.periodDates.length > 0) {
+                return p.periodDates.some(pd => {
+                    const targetDate = dayjs(pd);
+                    return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+                });
+            } else if (p.periodDate) {
+                const targetDate = dayjs(p.periodDate);
+                return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+            } else {
+                const targetDate = dayjs(p.date);
+                return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+            }
         });
 
         const isWarning = !hasPaidThisMonth && past10th;

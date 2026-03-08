@@ -9,6 +9,7 @@ export interface Owner {
     address: string;
     signatureUrl?: string; // Nuevo campo para firma digitalizada
     commissionPercentage?: number; // Fase 15
+    role?: 'owner' | 'admin';
 }
 
 export interface Property {
@@ -73,6 +74,7 @@ export interface Payment {
     amount: number;
     date: string; // ISO string (Fecha real de pago)
     periodDate?: string; // ISO string (Mes/Año al que se imputa el pago)
+    periodDates?: string[]; // Arrays of ISO strings
     concept: string;
     paymentMethod?: 'Efectivo' | 'Transferencia Bancaria';
     bankDetails?: {
@@ -85,6 +87,7 @@ export interface Payment {
     otrosAmount?: number; // Fase 18 desglose
     adminFee?: number; // Fase 15
     ownerBalance?: number; // Fase 15
+    signed_by?: string; // Owner ID UUID for signature
 }
 
 export interface AppUser {

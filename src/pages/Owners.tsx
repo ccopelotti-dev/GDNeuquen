@@ -56,6 +56,7 @@ const Owners: React.FC = () => {
         setEditingOwner(null);
         setSignatureFile(null);
         form.resetFields();
+        form.setFieldsValue({ role: 'owner' });
         setIsModalVisible(true);
     };
 
@@ -70,7 +71,8 @@ const Owners: React.FC = () => {
             address: record.address,
             propertyName: record.propertyName,
             unitCount: record.unitCount,
-            commissionPercentage: record.commissionPercentage || 10
+            commissionPercentage: record.commissionPercentage || 10,
+            role: record.role || 'owner'
         });
         setIsModalVisible(true);
     };
@@ -110,7 +112,8 @@ const Owners: React.FC = () => {
                     email: values.email,
                     address: values.address,
                     signatureUrl: signatureFile || undefined,
-                    commissionPercentage: values.commissionPercentage
+                    commissionPercentage: values.commissionPercentage,
+                    role: values.role
                 });
 
                 // Update property if exists
@@ -189,7 +192,8 @@ const Owners: React.FC = () => {
                     email: values.email,
                     address: values.address || '',
                     signatureUrl: signatureFile || undefined,
-                    commissionPercentage: values.commissionPercentage || 10
+                    commissionPercentage: values.commissionPercentage || 10,
+                    role: values.role || 'owner'
                 });
 
                 // Create associated property
@@ -248,7 +252,12 @@ const Owners: React.FC = () => {
             title: 'Nombre Completo',
             dataIndex: 'fullName',
             key: 'fullName',
-            render: (text) => <Text strong>{text}</Text>,
+            render: (text, record) => (
+                <Space>
+                    <Text strong>{text}</Text>
+                    {record.role === 'admin' && <Tag color="purple">Admin</Tag>}
+                </Space>
+            ),
         },
         {
             title: 'Complejo/Propiedad',
@@ -300,10 +309,18 @@ const Owners: React.FC = () => {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <Title level={2} style={{ margin: 0 }}>Propietarios</Title>
-                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-                    Nuevo Titular
-                </Button>
+                <Title level={2} style={{ margin: 0 }}>Propietarios y Administradores</Title>
+                <Space>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                        Nuevo Titular
+                    </Button>
+                    <Button type="default" icon={<PlusOutlined />} onClick={() => {
+                        handleAdd();
+                        form.setFieldsValue({ role: 'admin' });
+                    }}>
+                        Nuevo Administrador
+                    </Button>
+                </Space>
             </div>
 
             <Table
@@ -325,6 +342,12 @@ const Owners: React.FC = () => {
                 width={600}
             >
                 <Form form={form} layout="vertical">
+                    <Form.Item name="role" label="Rol" rules={[{ required: true }]}>
+                        <Select>
+                            <Select.Option value="owner">Titular / Propietario</Select.Option>
+                            <Select.Option value="admin">Administrador General</Select.Option>
+                        </Select>
+                    </Form.Item>
                     <Title level={5} style={{ marginTop: 0 }}>Datos Personales</Title>
                     <Form.Item name="fullName" label="Nombre y Apellido" rules={[{ required: true, message: 'Requerido' }]}>
                         <Input placeholder="Ej. Juan Pérez" />
