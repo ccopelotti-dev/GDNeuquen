@@ -376,27 +376,25 @@ const Owners: React.FC = () => {
                         </Form.Item>
                     </div>
 
-                    <Title level={5} style={{ marginTop: 16 }}>Gestión Administrativa</Title>
                     <Form.Item noStyle dependencies={['role']}>
                         {({ getFieldValue }) => {
                             const isOwner = getFieldValue('role') === 'owner';
-                            return (
-                                <div style={{ display: 'flex', gap: 16 }}>
-                                    {isOwner && (
-                                        <>
-                                            <Form.Item name="propertyName" label="Nombre del Complejo o Propiedad" style={{ flex: 2 }} rules={[{ required: isOwner, message: 'Debe asignar el nombre del complejo' }]}>
-                                                <Input placeholder="Ej. Departamentos Neuquén" />
-                                            </Form.Item>
-                                            <Form.Item name="unitCount" label="Cant. Unidades" style={{ flex: 1 }} tooltip="Auto-generar esta cantidad de unidades al guardar (sólo si no existen previamente)">
-                                                <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="Ej. 10" />
-                                            </Form.Item>
-                                        </>
-                                    )}
-                                    <Form.Item name="commissionPercentage" label="Comisión (%)" style={{ flex: 1 }} initialValue={10} rules={[{ required: true, message: 'Obligatorio' }]}>
-                                        <InputNumber min={0} max={100} style={{ width: '100%', color: '#fa8c16', fontWeight: 'bold' }} />
-                                    </Form.Item>
-                                </div>
-                            );
+                            return isOwner ? (
+                                <>
+                                    <Title level={5} style={{ marginTop: 16 }}>Gestión Administrativa</Title>
+                                    <div style={{ display: 'flex', gap: 16 }}>
+                                        <Form.Item name="propertyName" label="Nombre del Complejo o Propiedad" style={{ flex: 2 }} rules={[{ required: isOwner, message: 'Debe asignar el nombre del complejo' }]}>
+                                            <Input placeholder="Ej. Departamentos Neuquén" />
+                                        </Form.Item>
+                                        <Form.Item name="unitCount" label="Cant. Unidades" style={{ flex: 1 }} tooltip="Auto-generar esta cantidad de unidades al guardar (sólo si no existen previamente)">
+                                            <InputNumber min={0} max={100} style={{ width: '100%' }} placeholder="Ej. 10" />
+                                        </Form.Item>
+                                        <Form.Item name="commissionPercentage" label="Comisión (%)" style={{ flex: 1 }} initialValue={10} rules={[{ required: true, message: 'Obligatorio' }]}>
+                                            <InputNumber min={0} max={100} style={{ width: '100%', color: '#fa8c16', fontWeight: 'bold' }} />
+                                        </Form.Item>
+                                    </div>
+                                </>
+                            ) : null;
                         }}
                     </Form.Item>
 
