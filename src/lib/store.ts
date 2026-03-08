@@ -71,7 +71,8 @@ export interface Payment {
     tenant_id: string;
     owner_id?: string;
     amount: number;
-    date: string; // ISO string
+    date: string; // ISO string (Fecha real de pago)
+    periodDate?: string; // ISO string (Mes/Año al que se imputa el pago)
     concept: string;
     paymentMethod?: 'Efectivo' | 'Transferencia Bancaria';
     bankDetails?: {
@@ -117,10 +118,10 @@ export const migrateLocalStorageToSupabase = async () => {
                     console.log(`Migrando ${parsed.length} registros de ${keys[i]} a Supabase (${tables[i]})...`);
                     const { error } = await supabase.from(tables[i]).upsert(parsed);
                     if (error) {
-                         console.error(`Error migrando ${keys[i]}:`, error);
+                        console.error(`Error migrando ${keys[i]}:`, error);
                     } else {
-                         localStorage.removeItem(keys[i]);
-                         migratedAny = true;
+                        localStorage.removeItem(keys[i]);
+                        migratedAny = true;
                     }
                 } else {
                     localStorage.removeItem(keys[i]);
@@ -212,7 +213,7 @@ export const api = {
             const newTenant = { ...tenant, id: uuidv4() };
             const { data, error } = await supabase.from('tenants').insert([newTenant]).select().single();
             if (error) throw error;
-            
+
             await supabase.from('units').update({ status: 'occupied' }).eq('id', newTenant.unit_id);
             return data as Tenant;
         },
@@ -224,7 +225,7 @@ export const api = {
         async delete(id: string): Promise<void> {
             const { data: tenant } = await supabase.from('tenants').select('unit_id').eq('id', id).single();
             if (tenant) {
-                 await supabase.from('units').update({ status: 'available' }).eq('id', tenant.unit_id);
+                await supabase.from('units').update({ status: 'available' }).eq('id', tenant.unit_id);
             }
             const { error } = await supabase.from('tenants').delete().eq('id', id);
             if (error) throw error;

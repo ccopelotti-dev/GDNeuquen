@@ -94,7 +94,10 @@ const Dashboard: React.FC = () => {
 
                 // 2. Recaudación & Ganancia Operativa (Mes Actual)
                 const currentMonth = dayjs().format('YYYY-MM');
-                const pThisMonth = filteredPayments.filter(p => dayjs(p.date).format('YYYY-MM') === currentMonth);
+                const pThisMonth = filteredPayments.filter(p => {
+                    const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
+                    return targetDate.format('YYYY-MM') === currentMonth;
+                });
 
                 const recBruta = pThisMonth.reduce((acc, curr) => acc + curr.amount, 0);
                 const ganOperativa = pThisMonth.reduce((acc, curr) => acc + (curr.adminFee || 0), 0);
@@ -122,7 +125,10 @@ const Dashboard: React.FC = () => {
                     const monthKey = dayjs().subtract(i, 'month').format('YYYY-MM');
                     const monthName = dayjs().subtract(i, 'month').format('MMM').toUpperCase();
 
-                    const pMonth = filteredPayments.filter(p => dayjs(p.date).format('YYYY-MM') === monthKey);
+                    const pMonth = filteredPayments.filter(p => {
+                        const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
+                        return targetDate.format('YYYY-MM') === monthKey;
+                    });
 
                     const rBruta = pMonth.reduce((acc, curr) => acc + curr.amount, 0);
                     const gOperativa = pMonth.reduce((acc, curr) => acc + (curr.adminFee || 0), 0);

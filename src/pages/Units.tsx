@@ -127,9 +127,11 @@ const Units: React.FC = () => {
         const tenant = tenants.find(t => t.unit_id === unit.id);
         if (!tenant) return { tenant: null, isWarning: false };
 
-        const hasPaidThisMonth = payments.some(
-            p => p.tenant_id === tenant.id && (dayjs(p.date).isAfter(currentMonthStart) || dayjs(p.date).isSame(currentMonthStart, 'month'))
-        );
+        const hasPaidThisMonth = payments.some(p => {
+            if (p.tenant_id !== tenant.id) return false;
+            const targetDate = p.periodDate ? dayjs(p.periodDate) : dayjs(p.date);
+            return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+        });
 
         const isWarning = !hasPaidThisMonth && past10th;
 

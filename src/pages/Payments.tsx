@@ -67,9 +67,10 @@ const Payments: React.FC = () => {
 
             const currentMonthStart = dayjs().startOf('month');
 
-            const thisMonthPayments = p.filter(payment =>
-                dayjs(payment.date).isAfter(currentMonthStart) || dayjs(payment.date).isSame(currentMonthStart, 'month')
-            );
+            const thisMonthPayments = p.filter(payment => {
+                const targetDate = payment.periodDate ? dayjs(payment.periodDate) : dayjs(payment.date);
+                return targetDate.isAfter(currentMonthStart) || targetDate.isSame(currentMonthStart, 'month');
+            });
 
             const rows = thisMonthPayments.map(payment => {
                 const tenant = allT.find(ten => ten.id === payment.tenant_id);
@@ -273,6 +274,7 @@ const Payments: React.FC = () => {
                 expensasAmount: expensasAmt,
                 otrosAmount: otrosAmt,
                 date: values.date ? values.date.toISOString() : dayjs().toISOString(),
+                periodDate: values.periodDate ? values.periodDate.startOf('month').toISOString() : dayjs().startOf('month').toISOString(),
                 paymentMethod: values.paymentMethod,
                 bankDetails: values.bankDetails,
                 adminFee,
@@ -384,7 +386,7 @@ const Payments: React.FC = () => {
                     </Row>
 
                     <Row gutter={16}>
-                        <Col span={12}>
+                        <Col span={8}>
                             <Form.Item
                                 name="date"
                                 label="Fecha de Pago"
@@ -394,11 +396,21 @@ const Payments: React.FC = () => {
                                 <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} allowClear={false} />
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
+                        <Col span={8}>
+                            <Form.Item
+                                name="periodDate"
+                                label="Período a Imputar"
+                                initialValue={dayjs()}
+                                rules={[{ required: true, message: 'Seleccione período' }]}
+                            >
+                                <DatePicker picker="month" format="MM/YYYY" style={{ width: '100%' }} allowClear={false} />
+                            </Form.Item>
+                        </Col>
+                        <Col span={8}>
                             <Form.Item
                                 name="paymentMethod"
                                 label="Forma de Pago"
-                                rules={[{ required: true, message: 'Seleccione forma de pago' }]}
+                                rules={[{ required: true, message: 'Seleccione forma' }]}
                                 initialValue="Efectivo"
                             >
                                 <Select>
