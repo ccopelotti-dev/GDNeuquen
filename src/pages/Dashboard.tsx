@@ -23,7 +23,7 @@ import {
     CartesianGrid,
     Tooltip
 } from 'recharts';
-import RestoreData from '../components/RestoreData';
+
 
 const { Title, Text } = Typography;
 
@@ -222,7 +222,7 @@ const Dashboard: React.FC = () => {
     // Render Tracker Profesional
     return (
         <div>
-            <RestoreData />
+
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                 <div>
