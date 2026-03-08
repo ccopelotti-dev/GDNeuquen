@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { api, type Payment, type Tenant, type Unit, type Owner, type Property } from '../lib/store';
+import { api, type Payment, type Tenant, type Unit, type Owner } from '../lib/store';
 import type { ColumnsType } from 'antd/es/table';
 import { useProperty } from '../context/PropertyContext';
 
@@ -30,7 +30,6 @@ const Payments: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<PaymentRow[]>([]);
     const [owners, setOwners] = useState<Owner[]>([]);
-    const [properties, setProperties] = useState<Property[]>([]);
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [units, setUnits] = useState<Unit[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -40,16 +39,14 @@ const Payments: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [allO, allProp, allU, allT, allP] = await Promise.all([
+            const [allO, allU, allT, allP] = await Promise.all([
                 api.owners.getAll(),
-                api.properties.getAll(),
                 api.units.getAll(),
                 api.tenants.getAll(),
                 api.payments.getAll()
             ]);
 
             setOwners(allO);
-            setProperties(allProp);
             setUnits(allU);
             setTenants(allT);
 
@@ -385,12 +382,10 @@ const Payments: React.FC = () => {
                                     const selectedOwner = getFieldValue('owner_id');
                                     let filteredTenants = tenants;
 
-                                    if (selectedOwner) {
-                                        const ownerProps = properties.filter(p => p.owner_id === selectedOwner);
-                                        const ownerPropIds = new Set(ownerProps.map(p => p.id));
-                                        const ownerUnits = units.filter(u => ownerPropIds.has(u.property_id));
-                                        const ownerUnitIds = new Set(ownerUnits.map(u => u.id));
-                                        filteredTenants = tenants.filter(t => ownerUnitIds.has(t.unit_id));
+                                    if (activePropertyId) {
+                                        const propertyUnits = units.filter(u => u.property_id === activePropertyId);
+                                        const unitIds = new Set(propertyUnits.map(u => u.id));
+                                        filteredTenants = tenants.filter(t => unitIds.has(t.unit_id));
                                     }
 
                                     return (
