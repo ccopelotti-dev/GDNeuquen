@@ -117,7 +117,7 @@ const Owners: React.FC = () => {
                 });
 
                 // Update property if exists
-                if (editingOwner.propertyId) {
+                if (editingOwner.propertyId && values.role === 'owner') {
                     await api.properties.update(editingOwner.propertyId, {
                         name: values.propertyName,
                         unitCount: values.unitCount
