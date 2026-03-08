@@ -240,8 +240,13 @@ const Owners: React.FC = () => {
 
             // Reload window to ensure PropertyContext catches the new property
             window.location.reload();
-        } catch (error) {
-            console.error("Validation failed:", error);
+        } catch (error: any) {
+            console.error("Save failed:", error);
+            if (error.errorFields) {
+                message.error("Por favor, complete todos los campos obligatorios");
+            } else {
+                message.error("Error al guardar: " + (error.message || "Error desconocido"));
+            }
         } finally {
             setLoading(false);
         }
@@ -379,7 +384,7 @@ const Owners: React.FC = () => {
                                 <div style={{ display: 'flex', gap: 16 }}>
                                     {isOwner && (
                                         <>
-                                            <Form.Item name="propertyName" label="Nombre del Complejo o Propiedad" style={{ flex: 2 }} rules={[{ required: true, message: 'Debe asignar el nombre del complejo' }]}>
+                                            <Form.Item name="propertyName" label="Nombre del Complejo o Propiedad" style={{ flex: 2 }} rules={[{ required: isOwner, message: 'Debe asignar el nombre del complejo' }]}>
                                                 <Input placeholder="Ej. Departamentos Neuquén" />
                                             </Form.Item>
                                             <Form.Item name="unitCount" label="Cant. Unidades" style={{ flex: 1 }} tooltip="Auto-generar esta cantidad de unidades al guardar (sólo si no existen previamente)">
