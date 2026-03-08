@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import esES from 'antd/locale/es_ES';
 
@@ -60,7 +60,7 @@ function App() {
         }}
       >
         <PropertyProvider>
-          <BrowserRouter basename="/GDNeuquen">
+          <HashRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={
@@ -78,7 +78,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
-          </BrowserRouter>
+          </HashRouter>
         </PropertyProvider>
       </ConfigProvider>
     </AuthProvider>
